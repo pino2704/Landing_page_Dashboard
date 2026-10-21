@@ -1,0 +1,6 @@
+output/
+.playwright-cli/
+Spec/
+Real_System/DB_WEB_05_admin_preview.png
+DEMO.html
+_site/

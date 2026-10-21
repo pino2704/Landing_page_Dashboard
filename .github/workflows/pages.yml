@@ -1,0 +1,53 @@
+name: Publish Dashboard landing page
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare public files
+        shell: python
+        run: |
+          from pathlib import Path
+          from shutil import copy2
+
+          files = [
+              'index.html', 'styles.css', 'app.js', 'LICENSE',
+              'assets/fonts/BeVietnamPro-Regular.ttf',
+              'assets/fonts/BeVietnamPro-SemiBold.ttf',
+              'assets/fonts/BeVietnamPro-Bold.ttf',
+              'assets/fonts/OFL.txt',
+              'Real_System/DB_WEB_01_accreditation_overview.png',
+              'Real_System/DB_WEB_01_ranking_overview.png',
+              'Real_System/DB_WEB_03_program_detail.png',
+              'Real_System/DB_WEB_04_ranking_InCitesPaper.png',
+              'Real_System/DB_WEB_06_alerts.png',
+          ]
+          for name in files:
+              target = Path('_site') / name
+              target.parent.mkdir(parents=True, exist_ok=True)
+              copy2(name, target)
+          assert sorted(p.relative_to('_site').as_posix() for p in Path('_site').rglob('*') if p.is_file()) == sorted(files)
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
